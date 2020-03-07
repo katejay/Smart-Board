@@ -13,8 +13,11 @@ byte dayOfWeek=4;
 byte dayOfMonth=1;
 int Alarm = 2;
 int AlarmSet = 0;
-const int buttonPin = 5;   //d
-int buttonState = 0;  //d
+const int buttonPin = 5;
+const int buttonPin1 = 12;
+int buttonState = 0;
+int buttonState1 = 0;
+int sensorValue;
 
 // Convert normal decimal numbers to binary coded decimal
 byte decToBcd(byte val)
@@ -30,13 +33,13 @@ byte bcdToDec(byte val)
 
 // Assumes you're passing in valid numbers
 void setDateDS3231(
-byte second,        // 0-59
-byte minute,        // 0-59
-byte hour,          // 1-23
-byte dayOfWeek,     // 1-7
-byte dayOfMonth,    // 1-28/29/30/31
-byte month,         // 1-12
-byte year)          // 0-99
+byte second,
+byte minute,
+byte hour,  
+byte dayOfWeek,
+byte dayOfMonth,
+byte month, 
+byte year) 
 
 {
   Wire.beginTransmission(DS3231_I2C_ADDRESS);
@@ -60,7 +63,9 @@ byte *dayOfWeek,
 byte *dayOfMonth,
 byte *month,
 byte *year)
-{
+
+
+{  
   // Reset the register pointer
   Wire.beginTransmission(DS3231_I2C_ADDRESS);
   Wire.write(0);
@@ -90,6 +95,7 @@ void setup()
   pinMode(Alarm, OUTPUT);
   digitalWrite(Alarm, HIGH);
   pinMode(buttonPin, INPUT); // d
+  pinMode(buttonPin1, INPUT); // d
 
   dmd.clearScreen();
   dmd.drawString( 1, 0, "Smart");
@@ -102,6 +108,18 @@ void setup()
   dmd.drawString( 1, 0, "BE-IT");
   dmd.drawString( 4, 9, "G:10");
   delay(6000);
+  dmd.clearScreen();
+  
+  //second = 00;
+  //minute = 18;
+  //hour = 7; // use 24-hour time otherwise day/date calculations will be off
+  //dayOfWeek = 7;
+  //dayOfMonth = 7;
+  //month = 3;
+  //year = 20;
+  //uncomment the setDateDS3231 call below to set time to intervals above.  Remember if you set the time 
+  //you need to uncomment the line below again otherwise the sketch will only stay at the time set.
+  //setDateDS3231(second, minute, hour, dayOfWeek, dayOfMonth, month, year);
 }
 
 void drawDay()
@@ -567,24 +585,35 @@ void airPressure(){
   dmd.drawString( 0, 9, String(a));
   //box.println(a);
   Serial.println(a);
-  //delay(2000);
+}
+
+void airQuality(){
+  //Serial.begin(9600);
+  sensorValue = analogRead(0);
+  
+  int b =  (sensorValue);
+  dmd.clearScreen();
+  dmd.drawString( 0, 0, "Air Q.");
+  dmd.drawString( 0, 9, String(b));
+  Serial.println(b);
+  delay(100);
 }
 
 void loop()
 {
   buttonState = digitalRead(buttonPin);
+  buttonState1 = digitalRead(buttonPin1);
+  
   if (buttonState == HIGH) {
     // turn airPressure
     airPressure();
-  } else {
+  } 
+  else if (buttonState1 == HIGH) {
+    // turn airQuality
+    airQuality();
+  }
+  else {
     // turn runClock();
     runClock();
   }
-
-  //runClock();
-  //delay(5000);
-  //dmd.clearScreen();
-  //airPressure();
-  //delay(1000);
-  //dmd.clearScreen();
 }
